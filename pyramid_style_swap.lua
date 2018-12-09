@@ -229,7 +229,8 @@ style_latent = criterion.net.output:clone()
 print('Creating save folder at ' .. opt.save)
 paths.mkdir(opt.save)
 
-local curr_patch_size = opt.minPatchSize or 3
+local curr_patch_size = 3
+if opt.minPatchSize ~= nil then curr_patch_size = opt.minPatchSize end
 local max_patch_size = math.min(style_img:size(2), style_img:size(3))
 local step = 1
 
