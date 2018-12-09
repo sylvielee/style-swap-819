@@ -234,6 +234,8 @@ local max_patch_size = math.min(style_img:size(2), style_img:size(3))
 local step = 1
 
 print("OF INTEREST")
+print(opt)
+print(opt.minPatchSize)
 print(curr_path_size)
 print(max_patch_size)
 
