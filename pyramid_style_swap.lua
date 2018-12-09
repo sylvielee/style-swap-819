@@ -278,7 +278,7 @@ while step <= opt.numPatches and curr_patch_size < max_patch_size do
             end
         end
     end
-    curr_patch_size = curr_path_size + opt.patchStep
+    curr_patch_size = curr_patch_size + opt.patchStep
 end
 print("completed running with patch sizes from " .. tostring(opt.minPatchSize) .. " for " ..
     opts.numPatches .. " with step size " .. opt.patchStep)
