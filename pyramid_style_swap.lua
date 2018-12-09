@@ -1,4 +1,5 @@
 require 'torch'
+require 'math'
 lapp = require 'pl.lapp'
 
 opt = lapp[[
@@ -18,7 +19,7 @@ opt = lapp[[
 == Advanced ==
 --gpu                   (default 0)
 --minPatchSize          (default 3)             Starting patch size for style swap
---numPatches                                    Number of other patch sizes to try (increasing from minPatchSize)
+--numPatches            (default 5)             Number of other patch sizes to try (increasing from minPatchSize)
 --patchStep             (default 3)             Amount to increment patch size by each step
 --patchStride           (default 1)             Patch stride for style swap operation
 --pooling               (default 'max')         One of [avg|max]
@@ -160,76 +161,6 @@ function synth(img)
     return x
 end
 
-style_img = image.load(opt.style, 3)
-if style_img:size(2) > opt.maxStyleSize or style_img:size(3) > opt.maxStyleSize then
-    style_img = image.scale(style_img, opt.maxStyleSize)
-end
-if not opt.cpu then
-    style_img = style_img:cuda()
-else
-    style_img = style_img:float()
-end
-
-criterion.targets = true    -- override behavior
-criterion.net:forward(style_img)
-style_latent = criterion.net.output:clone()
-
-print('Creating save folder at ' .. opt.save)
-paths.mkdir(opt.save)
-
-local curr_patch_size = opt.minPatchSize
-local max_patch_size = min(style_img:size(2), style_img:size(3))
-local step = 1
-
-while step <= opt.numPatches and curr_patch_size < max_patch_size
-    swap_enc, swap_dec = NonparametricPatchAutoencoderFactory.buildAutoencoder(style_latent:clone(), 
-        curr_patch_size, opt.patchStride, false, false, true)
-
-    swap = nn.Sequential()
-    swap:add(swap_enc)
-    swap:add(nn.MaxCoord())
-    swap:add(swap_dec)
-    swap:evaluate()
-
-    if not opt.cpu then
-        swap:cuda()
-    else
-        swap:float()
-    end
-
-    print(swap)
-
-    if opt.content ~= '' then
-        img = image.load(opt.content, 3)
-        local H,W = img:size(2), img:size(3)
-        if H > opt.maxContentSize or W > opt.maxContentSize then
-            img = image.scale(img, opt.maxContentSize)
-        end
-
-        name = paths.basename(opt.content)
-        for i=1,opt.numSwap do
-            img = swapTransfer(img, name)
-        end
-    else
-        imageLoader = ImageLoader(opt.contentBatch)
-        imageLoader:setMaximumSize(opt.maxContentSize)
-
-        for i=1, #imageLoader.files do
-            img,name = imageLoader:next()
-            for i=1,opt.numSwap do
-                img = swapTransfer(img, name)
-            end
-        end
-    end
-    curr_patch_size = curr_path_size + opt.patchStep
-end
-print("completed running with patch sizes from " .. tostring(opt.minPatchSize) .. " for " ..
-    opts.numPatches .. " with step size " .. opt.patchStep)
-
-if opt.saveLoss then
-    torch.save(opt.save .. '/loss.t7', optim_losses)
-end
-
 function swapTransfer(img, name)
     if opt.saveOriginal then
         image.save(opt.save .. '/' .. name, img)
@@ -280,3 +211,74 @@ function swapTransfer(img, name)
 
     return x
 end
+
+style_img = image.load(opt.style, 3)
+if style_img:size(2) > opt.maxStyleSize or style_img:size(3) > opt.maxStyleSize then
+    style_img = image.scale(style_img, opt.maxStyleSize)
+end
+if not opt.cpu then
+    style_img = style_img:cuda()
+else
+    style_img = style_img:float()
+end
+
+criterion.targets = true    -- override behavior
+criterion.net:forward(style_img)
+style_latent = criterion.net.output:clone()
+
+print('Creating save folder at ' .. opt.save)
+paths.mkdir(opt.save)
+
+local curr_patch_size = opt.minPatchSize
+local max_patch_size = math.min(style_img:size(2), style_img:size(3))
+local step = 1
+
+while step <= opt.numPatches and curr_patch_size < max_patch_size do
+    swap_enc, swap_dec = NonparametricPatchAutoencoderFactory.buildAutoencoder(style_latent:clone(), 
+        curr_patch_size, opt.patchStride, false, false, true)
+
+    swap = nn.Sequential()
+    swap:add(swap_enc)
+    swap:add(nn.MaxCoord())
+    swap:add(swap_dec)
+    swap:evaluate()
+
+    if not opt.cpu then
+        swap:cuda()
+    else
+        swap:float()
+    end
+
+    print(swap)
+
+    if opt.content ~= '' then
+        img = image.load(opt.content, 3)
+        local H,W = img:size(2), img:size(3)
+        if H > opt.maxContentSize or W > opt.maxContentSize then
+            img = image.scale(img, opt.maxContentSize)
+        end
+
+        name = paths.basename(opt.content)
+        for i=1,opt.numSwap do
+            img = swapTransfer(img, name)
+        end
+    else
+        imageLoader = ImageLoader(opt.contentBatch)
+        imageLoader:setMaximumSize(opt.maxContentSize)
+
+        for i=1, #imageLoader.files do
+            img,name = imageLoader:next()
+            for i=1,opt.numSwap do
+                img = swapTransfer(img, name)
+            end
+        end
+    end
+    curr_patch_size = curr_path_size + opt.patchStep
+end
+print("completed running with patch sizes from " .. tostring(opt.minPatchSize) .. " for " ..
+    opts.numPatches .. " with step size " .. opt.patchStep)
+
+if opt.saveLoss then
+    torch.save(opt.save .. '/loss.t7', optim_losses)
+end
+
