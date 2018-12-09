@@ -235,7 +235,7 @@ step = 1
 
 print("OF INTEREST")
 print(opt.minPatchSize)
-print(curr_path_size)
+print(curr_patch_size)
 print(type(opt.minPatchSize))
 
 while step <= opt.numPatches and curr_patch_size < max_patch_size do
