@@ -229,9 +229,13 @@ style_latent = criterion.net.output:clone()
 print('Creating save folder at ' .. opt.save)
 paths.mkdir(opt.save)
 
-local curr_patch_size = opt.minPatchSize
+local curr_patch_size = opt.minPatchSize or 3
 local max_patch_size = math.min(style_img:size(2), style_img:size(3))
 local step = 1
+
+print("OF INTEREST")
+print(curr_path_size)
+print(max_patch_size)
 
 while step <= opt.numPatches and curr_patch_size < max_patch_size do
     swap_enc, swap_dec = NonparametricPatchAutoencoderFactory.buildAutoencoder(style_latent:clone(), 

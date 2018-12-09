@@ -109,12 +109,12 @@ function NonparametricPatchAutoencoderFactory._extract_patches(img, patch_size, 
     local n1, n2, n3, n4, n5 = patches:size(1), patches:size(2), patches:size(3), patches:size(4), patches:size(5)
     patches = patches:permute(2,3,1,4,5):contiguous():view(n2*n3, n1, n4, n5)
 
-    print("patch in 2 steps")
-    print(img:unfold(2, kH, dH):nDimension())
-    print(img:unfold(2, kH, dH):size(1), img:unfold(2, kH, dH):size(2), img:unfold(2, kH, dH):size(3), img:unfold(2, kH, dH):size(4))
-    print("part 2")
-    print(img:unfold(2, kH, dH):unfold(3, kW, dW):nDimension())
-    print(n1, n2, n3, n4, n5)
+    -- print("patch in 2 steps")
+    -- print(img:unfold(2, kH, dH):nDimension())
+    -- print(img:unfold(2, kH, dH):size(1), img:unfold(2, kH, dH):size(2), img:unfold(2, kH, dH):size(3), img:unfold(2, kH, dH):size(4))
+    -- print("part 2")
+    -- print(img:unfold(2, kH, dH):unfold(3, kW, dW):nDimension())
+    -- print(n1, n2, n3, n4, n5)
 
     -- print("testing cutting half of patches")
     -- local i = 1
