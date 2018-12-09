@@ -229,14 +229,13 @@ style_latent = criterion.net.output:clone()
 print('Creating save folder at ' .. opt.save)
 paths.mkdir(opt.save)
 
-curr_patch_size = opt.minPatchSize or 3
+curr_patch_size = opt.minPatchSize
 max_patch_size = math.min(style_img:size(2), style_img:size(3))
 step = 1
 
 print("OF INTEREST")
 print(opt.minPatchSize)
 print(curr_path_size)
-print(max_patch_size)
 print(type(opt.minPatchSize))
 
 while step <= opt.numPatches and curr_patch_size < max_patch_size do
