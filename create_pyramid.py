@@ -61,7 +61,7 @@ def combine_best_patches(patch_image_directory, context_image, stride=1):
         for j in range(context.shape[1]):
             if num_overlaps[i][j] == 0:
                 print("THERE WAS AN ISSUE COUNTING OVERLAPS AT %d, %d" % (i,j))
-            context[i][j]/=num_overlaps[i][j]
+            output[i][j]/=num_overlaps[i][j]
 
     # plt.imshow(output)
     # plt.show()
@@ -128,7 +128,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, stride=1):
             ff_labels[r, c] = label_factor.normalized_data
 
     # save the labels so they can be easily reused
-    pickle.dump(ff_labels , open( "first_factor_label_data.p", "w" ))
+    pickle.dump(ff_labels , open( "try2_first_factor_label_data.p", "w" ))
 
 def get_stylized_images(patch_image_directory):
     """
@@ -257,7 +257,7 @@ def create_neighbor_matrix(patch_images, base_loc, pw, stride):
         pw- patch width
         stride- step between patches
     outputs
-        neighbor_mat- Up to four KxK matrix with "compatability" values between
+        neighbor_mat- Up to 2 KxK matrix with "compatability" values between
             every pair of patches in base_loc and a neighboring loc from K different images
             In each matrix, the BASE loc will be represented by the rows while NEIGHBOR will be cols
             NOTE: rn only does 4 neighbors (u, d, l, r) TODO maybe do all 8 including diagonals?
@@ -266,30 +266,18 @@ def create_neighbor_matrix(patch_images, base_loc, pw, stride):
     assert len(patch_images) > 0
 
     # create neighbor locs
+    # note: we only need to check bottom and right neighbors because
+    # we start top left and move right then down 
+    # this way we don't create redundant factors
     neighbors = []
-    if base_loc[0] - stride > 0: # if there's room for a patch above
-        neighbors.append((base_loc[0]-stride, base_loc[1]))
-    else:
-        neighbors.append(None)
-
     if base_loc[0] + stride + pw - 1 < len(patch_images[0]): # if there's room below 
         neighbors.append((base_loc[0]+stride, base_loc[1]))
     else:
         neighbors.append(None)
-
-    if base_loc[1] - stride > 0: # if there's room to the left
-        neighbors.append((base_loc[0], base_loc[1]-stride))
-    else:
-        neighbors.append(None)
-
     if base_loc[1] + stride + pw - 1 < len(patch_images[0][0]): # if there's room to the right
         neighbors.append((base_loc[0], base_loc[1]+stride))
     else:
         neighbors.append(None)
-
-    print("\nlooking at base loc %d, %d" % (base_loc[0], base_loc[1]))
-    print(neighbors)
-    print(patch_images[0].shape)
 
     # create each neighbor mat one by one, using None if the neighbor doesn't exist
     K = len(patch_images)
@@ -337,10 +325,13 @@ def compatability(dist):
     return np.log(1/dist)
 
 if __name__=='__main__':
-    if len(sys.argv) < 4:
-        print("Expected: create_pyramid.py <patch_image_directory> <context_image> <stride>")
+    if len(sys.argv) < 5:
+        print("Expected: create_pyramid.py <use_lbf> <patch_image_directory> <context_image> <stride>")
         sys.exit(2)
 
-    print('Starting combining')
-    # create_pyramid(sys.argv[1], sys.argv[2], int(sys.argv[3]))
-    lbp_combine_best_patches(sys.argv[1], sys.argv[2], int(sys.argv[3]))
+    if int(sys.argv[1]) == 0:
+        print('Starting combining using best patches')
+        combine_best_patches(sys.argv[1], sys.argv[2], int(sys.argv[3]))
+    else:
+        print('Starting combining using lbf')
+        lbp_combine_best_patches(sys.argv[2], sys.argv[3], int(sys.argv[4]))
