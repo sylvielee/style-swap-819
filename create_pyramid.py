@@ -100,6 +100,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, stride=1):
         partitions.append(energy)
         print('{:3} {:8.2f} {:5.2f} {:8.2f}'.format(orde.total_iterations, change, marginal, energy))
 
+    max_iters = 5 # 15
     order = FloodingProtocol(model, max_iterations=15)
     inference = LoopyBeliefUpdateInference(model, order, callback=reporter)
     inference.calibrate(evidence)
@@ -128,7 +129,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, stride=1):
             ff_labels[r, c] = label_factor.normalized_data
 
     # save the labels so they can be easily reused
-    pickle.dump(ff_labels , open( "try2_first_factor_label_data.p", "w" ))
+    pickle.dump(ff_labels , open( "try3_first_factor_label_data.p", "w" ))
 
 def get_stylized_images(patch_image_directory):
     """
