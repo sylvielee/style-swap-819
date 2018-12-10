@@ -2,13 +2,12 @@ import os
 import sys
 from PIL import Image
 import numpy as np
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 from pyugm.model import Model
 from pyugm.factor import DiscreteFactor
 from pyugm.factor import DiscreteBelief
 from pyugm.infer_message import LoopyBeliefUpdateInference
 from pyugm.infer_message import FloodingProtocol, LoopyDistributeCollectProtocol
-import matplotlib.pyplot as plt
 import seaborn
 import pickle
 
@@ -64,8 +63,8 @@ def combine_best_patches(patch_image_directory, context_image, stride=1):
                 print("THERE WAS AN ISSUE COUNTING OVERLAPS AT %d, %d" % (i,j))
             context[i][j]/=num_overlaps[i][j]
 
-    plt.imshow(output)
-    plt.show()
+    # plt.imshow(output)
+    # plt.show()
 
     output = np.uint8(output)
     im = Image.fromarray(output)
