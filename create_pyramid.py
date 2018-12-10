@@ -8,7 +8,7 @@ from pyugm.factor import DiscreteFactor
 from pyugm.factor import DiscreteBelief
 from pyugm.infer_message import LoopyBeliefUpdateInference
 from pyugm.infer_message import FloodingProtocol, LoopyDistributeCollectProtocol
-import seaborn
+# import seaborn
 import pickle
 
 
