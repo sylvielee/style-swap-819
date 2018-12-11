@@ -188,7 +188,7 @@ def construct_graph(patch_images, context_image, pw, stride):
             print("these two are linked by a factor")
 
             observation_params = create_oberservation_comps(patch_images, context_image, (r,c), pw)
-            factors.append(DiscreteFactor([(label_variable_name, K), (observation_variable_name, 1)], parameters=observation_params))
+            factors.append(DiscreteFactor([(label_variable_name, K), (observation_variable_name, 255)], parameters=observation_params))
             evidence[observation_variable_name] = context_image[r:r+pw, c:c+pw, :] 
             
     # Add label factors
