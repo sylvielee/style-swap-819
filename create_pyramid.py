@@ -94,34 +94,30 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     inference = LoopyBeliefUpdateInference(model, order, callback=reporter)
     inference.calibrate(evidence)
 
-    # seaborn.set_style("darkgrid")
-    # ax1 = plt.axes()
-    # ax2 = ax1.twinx()
-    # _ = ax1.plot([np.log(change) for change in changes])
-    # seaborn.set_style('dark')
-    # _ = ax2.plot(partitions, color='g')
-    # ax2.set_yticks(np.linspace(ax2.get_yticks()[0], ax2.get_yticks()[-1], len(ax1.get_yticks())))
-    # _ = ax1.set_ylabel('Log of total belief change')
-    # _ = ax2.set_ylabel('Log of the approximation to the partition function Z')
-    # _ = ax1.set_xlabel('Iteration number')
-
     K = len(patch_images)
-    num_r = context.shape[0]-smallest_pw+1
-    num_c = context.shape[1]-smallest_pw+1
+    rrange = range(0, patchR-smallest_pw+1, stride)
+    crange = range(0, patchC-smallest_pw+1, stride)
+    num_r = len(rrange) # number of patches vertically
+    num_c = len(crange) # number of patches horizontally
+
     ff_labels = [[None for i in range(num_r)] for j in range(num_c)]
-    for r in range(0, num_r, stride):
-        for c in range(0, num_c, stride):
+    ff_r, ff_c = 0, 0
+    for r in rrange:
+        for c in crange:
             variable_name = 'label_{}_{}'.format(r, c)
 
             # first factor is the context-style factor tha we want
             label_factor = inference.get_marginals(variable_name)[0]
             print(str(label_factor))
             print(label_factor.normalized_data)
-            ff_labels[r][c] = label_factor.normalized_data
 
-    ff_labels = np.array(ff_labels)
+            # save the actual patch location to make it easier to remap them later on
+            ff_labels[ff_r][ff_c] = [[r, c], label_factor.normalized_data]
+            ff_c+=1
+        ff_r+=1
 
     # save the labels so they can be easily reused
+    ff_labels = np.array(ff_labels)
     pickle.dump(ff_labels , open( "%s_first_factor_label_data.p" % prediction_fn, "w" ))
 
 def get_stylized_images(patch_image_directory):
