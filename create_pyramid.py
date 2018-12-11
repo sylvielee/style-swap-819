@@ -118,8 +118,8 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
         ff_r+=1
 
     # save the labels so they can be easily reused
-    ff_labels = np.array(ff_labels)
-    np.save("%s_first_factor_label_data.p" % prediction_fn, ff_labels)
+    ff_labels = np.array([smallest_pw, ff_labels])
+    np.save("%s_first_factor_label_data" % prediction_fn, ff_labels)
 
 def get_stylized_images(patch_image_directory):
     """
