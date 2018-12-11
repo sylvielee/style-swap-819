@@ -298,6 +298,11 @@ def create_neighbor_matrix(patch_images, base_loc, pw, stride):
                 dist = evaluate_patch_distance(patch_one, patch_two)
                 neighbor_mat[i][j] = compatability(dist)
         neighbor_matrices.append(neighbor_mat)
+
+    # sanity check? 
+    for nm in neighbor_matrices:
+        if nm is not None:
+            assert nm.shape[0] == K and nm.shape[1] == K
     return neighbor_matrices, neighbors
 
 def evaluate_patch_distance(patch_one, patch_two):
