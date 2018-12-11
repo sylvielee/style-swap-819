@@ -106,17 +106,8 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
         for c in crange:
             variable_name = 'label_{}_{}'.format(r, c)
 
-            print('\n')
-            x = inference.get_marginals(variable_name)
-            print(x)
-            for v in inference.get_marginals(variable_name):
-                print(np.array(v.normalized_data))
-
             # first factor is the context-style factor tha we want
             label_factor = inference.get_marginals(variable_name)[0]
-
-            print(str(label_factor))
-            print(ff_r, ", ", ff_c)
 
             # save the actual patch location to make it easier to remap them later on
             ff_labels[ff_r][ff_c] = [[r, c], label_factor.normalized_data]
