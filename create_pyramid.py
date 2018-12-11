@@ -106,9 +106,12 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
         for c in crange:
             variable_name = 'label_{}_{}'.format(r, c)
 
+            print('\n')
+            print(inference.get_marginals(variable_name))
+
             # first factor is the context-style factor tha we want
             label_factor = inference.get_marginals(variable_name)[0]
-            print('\n')
+
             print(str(label_factor))
             print(ff_r, ", ", ff_c)
 
