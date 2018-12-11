@@ -330,4 +330,4 @@ if __name__=='__main__':
         combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
     else:
         print('Starting combining using lbf')
-        lbp_combine_best_patches(sys.argv[2], sys.argv[3], int(sys.argv[4]))
+        lbp_combine_best_patches(sys.argv[2], sys.argv[3], int(sys.argv[5]))
