@@ -107,7 +107,10 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
             variable_name = 'label_{}_{}'.format(r, c)
 
             print('\n')
-            print(inference.get_marginals(variable_name))
+            x = inference.get_marginals(variable_name)
+            print(x)
+            for v in inference.get_marginals(variable_name):
+                print(np.array(v.normalized_data).shape)
 
             # first factor is the context-style factor tha we want
             label_factor = inference.get_marginals(variable_name)[0]
