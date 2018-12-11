@@ -9,7 +9,6 @@ from pyugm.factor import DiscreteBelief
 from pyugm.infer_message import LoopyBeliefUpdateInference
 from pyugm.infer_message import FloodingProtocol, LoopyDistributeCollectProtocol
 # import seaborn
-import pickle
 
 
 def combine_best_patches(patch_image_directory, context_image, stride=1):
@@ -120,7 +119,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
 
     # save the labels so they can be easily reused
     ff_labels = np.array(ff_labels)
-    pickle.dump(ff_labels , open( "%s_first_factor_label_data.p" % prediction_fn, "w" ))
+    np.save("%s_first_factor_label_data.p" % prediction_fn, ff_labels)
 
 def get_stylized_images(patch_image_directory):
     """
