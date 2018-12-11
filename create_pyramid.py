@@ -105,9 +105,10 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     # _ = ax2.set_ylabel('Log of the approximation to the partition function Z')
     # _ = ax1.set_xlabel('Iteration number')
 
+    K = len(patch_images)
     num_r = context.shape[0]-smallest_pw+1
     num_c = context.shape[1]-smallest_pw+1
-    ff_labels = np.zeros((num_r, num_c))
+    ff_labels = [[None for i in range(num_r)] for j in range(num_c)]
     for r in range(0, num_r, stride):
         for c in range(0, num_c, stride):
             variable_name = 'label_{}_{}'.format(r, c)
@@ -117,6 +118,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
             print(str(label_factor))
             print(label_factor.normalized_data)
             ff_labels[r, c] = label_factor.normalized_data
+    ff_labels = np.array(ff_labels)
 
     # save the labels so they can be easily reused
     pickle.dump(ff_labels , open( "%s_first_factor_label_data.p" % prediction_fn, "w" ))
