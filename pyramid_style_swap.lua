@@ -279,9 +279,9 @@ while step <= opt.numPatches and curr_patch_size < max_patch_size do
         end
     end
     curr_patch_size = curr_patch_size + opt.patchStep
+    step = step + 1
 end
-print("completed running with patch sizes from " .. tostring(opt.minPatchSize) .. " for " ..
-    opts.numPatches .. " with step size " .. opt.patchStep)
+print("completed running with patch sizes from " .. tostring(opt.minPatchSize))
 
 if opt.saveLoss then
     torch.save(opt.save .. '/loss.t7', optim_losses)

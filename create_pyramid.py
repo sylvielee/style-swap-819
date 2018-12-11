@@ -71,7 +71,7 @@ def combine_best_patches(patch_image_directory, context_image, stride=1):
     im.save('pyramid_output.png')
     return output
 
-def lbp_combine_best_patches(patch_image_directory, context_image, stride=1):
+def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, stride=1):
     # open the context image
     context = Image.open(context_image)
 
@@ -87,18 +87,8 @@ def lbp_combine_best_patches(patch_image_directory, context_image, stride=1):
     model = Model(factors)
 
     # Get some feedback on how inference is converging by listening in on some of the label beliefs.
-    var_values = {'label_1_1': [], 'label_10_10': [], 'label_20_20': [], 'label_30_30': [], 'label_40_40': []}
-    changes = []
-    partitions = []
     def reporter(infe, orde):
-        for var in var_values.keys():
-            marginal = infe.get_marginals(var)[0].data[0]
-            var_values[var].append(marginal)
-        change = orde.last_iteration_delta
-        changes.append(change)
-        energy = infe.partition_approximation()
-        partitions.append(energy)
-        print('{:3} {:8.2f} {:5.2f} {:8.2f}'.format(orde.total_iterations, change, marginal, energy))
+        print('{:3}'.format(orde.total_iterations))
 
     max_iters = 5 # 15
     order = FloodingProtocol(model, max_iterations=15)
@@ -116,11 +106,11 @@ def lbp_combine_best_patches(patch_image_directory, context_image, stride=1):
     # _ = ax2.set_ylabel('Log of the approximation to the partition function Z')
     # _ = ax1.set_xlabel('Iteration number')
 
-    num_patches_r = context.shape[0]-smallest_pw+2
-    num_patches_c = context.shape[1]-smallest_pw+2
-    ff_labels = np.zeros((num_patches_r, num_patches_c))
-    for r in range(num_patches_r):
-        for c in range(num_patches_c):
+    num_r = context.shape[0]-smallest_pw+1
+    num_c = context.shape[1]-smallest_pw+1
+    ff_labels = np.zeros((num_r, num_c))
+    for r in range(1, num_r, stride):
+        for c in range(1, num_c, stride):
             variable_name = 'label_{}_{}'.format(r, c)
 
             # seems reasonable to expect that the first one is the one we want? 
@@ -129,7 +119,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, stride=1):
             ff_labels[r, c] = label_factor.normalized_data
 
     # save the labels so they can be easily reused
-    pickle.dump(ff_labels , open( "try3_first_factor_label_data.p", "w" ))
+    pickle.dump(ff_labels , open( "%s_first_factor_label_data.p" % prediction_fn, "w" ))
 
 def get_stylized_images(patch_image_directory):
     """
@@ -331,13 +321,13 @@ def compatability(dist):
     return np.log(1/dist)
 
 if __name__=='__main__':
-    if len(sys.argv) < 5:
-        print("Expected: create_pyramid.py <use_lbf> <patch_image_directory> <context_image> <stride>")
+    if len(sys.argv) < 6:
+        print("Expected: create_pyramid.py <use_lbf> <patch_image_directory> <context_image> <prediction_filename> <stride>")
         sys.exit(2)
 
     if int(sys.argv[1]) == 0:
         print('Starting combining using best patches')
-        combine_best_patches(sys.argv[1], sys.argv[2], int(sys.argv[3]))
+        combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
     else:
         print('Starting combining using lbf')
         lbp_combine_best_patches(sys.argv[2], sys.argv[3], int(sys.argv[4]))
