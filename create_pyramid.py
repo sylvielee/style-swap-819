@@ -36,9 +36,9 @@ def combine_best_patches(patch_image_directory, context_image, stride=1):
     # now for each small patch in context, find the best stylized patch
     num_overlaps = np.zeros(context.shape)
     output = np.zeros(context.shape)
-    for r in range(1, patchR-smallest_pw+1, stride):
+    for r in range(0, patchR-smallest_pw+1, stride):
         print("on row ", r, " of ", patchR-smallest_pw)
-        for c in range(1, patchC-smallest_pw+1, stride):
+        for c in range(0, patchC-smallest_pw+1, stride):
             context_patch = context[r:r+smallest_pw, c:c+smallest_pw, :]
             best_texture_index = None
             best_texture_dist = float('inf')
@@ -83,6 +83,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     context = context.resize((patchC, patchR), Image.ANTIALIAS)
     context = np.array(context)
 
+    print('\NSTRIDE: ', stride)
     evidence, factors = construct_graph(patch_images, context, smallest_pw, stride)
     model = Model(factors)
 
@@ -108,8 +109,8 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     num_r = context.shape[0]-smallest_pw+1
     num_c = context.shape[1]-smallest_pw+1
     ff_labels = np.zeros((num_r, num_c))
-    for r in range(1, num_r, stride):
-        for c in range(1, num_c, stride):
+    for r in range(0, num_r, stride):
+        for c in range(0, num_c, stride):
             variable_name = 'label_{}_{}'.format(r, c)
 
             # seems reasonable to expect that the first one is the one we want? 
@@ -177,8 +178,8 @@ def construct_graph(patch_images, context_image, pw, stride):
     source_cols = context_image.shape[1]
 
     # Add observation factors
-    for r in range(1, source_rows-pw+1, stride):
-        for c in range(1, source_cols-pw+1, stride):
+    for r in range(0, source_rows-pw+1, stride):
+        for c in range(0, source_cols-pw+1, stride):
             # do this for each patch in the source image
             # call create_observation_comps to make the parameters
             label_variable_name = 'label_{}_{}'.format(r, c)
@@ -196,8 +197,8 @@ def construct_graph(patch_images, context_image, pw, stride):
     # create a node for it and get the 4 neighbor matrices from the helper function
     # then create the neighbors-factors if appropriate
     # as said below, maybe just start with doing down and right
-    for r in range(1, source_rows-pw+1, stride):
-        for c in range(1, source_cols-pw+1, stride):
+    for r in range(0, source_rows-pw+1, stride):
+        for c in range(0, source_cols-pw+1, stride):
             variable_name = 'label_{}_{}'.format(r, c)
             neighbor_params, neighbor_locs = create_neighbor_matrix(patch_images, (r,c), pw, stride)
 
