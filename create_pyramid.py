@@ -84,6 +84,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     context = np.array(context)
 
     print('\NSTRIDE: ', stride)
+    return None
     evidence, factors = construct_graph(patch_images, context, smallest_pw, stride)
     model = Model(factors)
 
