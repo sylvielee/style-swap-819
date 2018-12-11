@@ -113,11 +113,12 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
         for c in range(0, num_c, stride):
             variable_name = 'label_{}_{}'.format(r, c)
 
-            # seems reasonable to expect that the first one is the one we want? 
+            # first factor is the context-style factor tha we want
             label_factor = inference.get_marginals(variable_name)[0]
             print(str(label_factor))
             print(label_factor.normalized_data)
             ff_labels[r][c] = label_factor.normalized_data
+
     ff_labels = np.array(ff_labels)
 
     # save the labels so they can be easily reused
