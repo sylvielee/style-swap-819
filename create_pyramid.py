@@ -71,7 +71,7 @@ def combine_best_patches(patch_image_directory, context_image, stride=1):
     im.save('pyramid_output.png')
     return output
 
-def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, stride=1):
+def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, stride=1, max_iters=1):
     # open the context image
     context = Image.open(context_image)
 
@@ -90,8 +90,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     def reporter(infe, orde):
         print('{:3}'.format(orde.total_iterations))
 
-    max_iters = 5 # 15
-    order = FloodingProtocol(model, max_iterations=15)
+    order = FloodingProtocol(model, max_iterations=max_iters)
     inference = LoopyBeliefUpdateInference(model, order, callback=reporter)
     inference.calibrate(evidence)
 
@@ -321,13 +320,13 @@ def compatability(dist):
     return np.log(1/dist)
 
 if __name__=='__main__':
-    if len(sys.argv) < 6:
-        print("Expected: create_pyramid.py <use_lbf> <patch_image_directory> <context_image> <prediction_filename> <stride>")
+    if len(sys.argv) < 7:
+        print("Expected: create_pyramid.py <use_lbf> <patch_image_directory> <context_image> <prediction_filename> <stride> <max_iters>")
         sys.exit(2)
 
     if int(sys.argv[1]) == 0:
         print('Starting combining using best patches')
-        combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
+        combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), int(sys.argv[6]))
     else:
         print('Starting combining using lbf')
         lbp_combine_best_patches(sys.argv[2], sys.argv[3], int(sys.argv[5]))
