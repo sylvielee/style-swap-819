@@ -11,7 +11,7 @@ from pyugm.infer_message import FloodingProtocol, LoopyDistributeCollectProtocol
 # import seaborn
 
 
-def combine_best_patches(patch_image_directory, context_image, stride=1):
+def combine_best_patches(patch_image_directory, context_image, prediction_fn, start_stride=1):
     """
     This function just looks at the context image in a set patch size and 
         constructs a new image by taking the best patch of that size from 
@@ -32,43 +32,75 @@ def combine_best_patches(patch_image_directory, context_image, stride=1):
     context = context.resize((patchC, patchR), Image.ANTIALIAS)
     context = np.array(context)
 
-    # now for each small patch in context, find the best stylized patch
-    num_overlaps = np.zeros(context.shape)
-    output = np.zeros(context.shape)
-    for r in range(0, patchR-smallest_pw+1, stride):
-        print("on row ", r, " of ", patchR-smallest_pw)
-        for c in range(0, patchC-smallest_pw+1, stride):
-            context_patch = context[r:r+smallest_pw, c:c+smallest_pw, :]
-            best_texture_index = None
-            best_texture_dist = float('inf')
+    print(context.shape)
 
-            # look at each possible patch texture
-            for i, texture in enumerate(patch_images):
-                text_patch = texture[r:r+smallest_pw, c:c+smallest_pw, :]
-                dist = evaluate_patch_distance(text_patch, context_patch)
+    pyramid_folder = 'pyramid_output/'
+    if not os.path.exists(pyramid_folder):
+        os.makedirs(pyramid_folder)
 
-                if dist < best_texture_dist:
-                    best_texture_index = i
-                    best_texture_dist = dist
+    inner_folder = pyramid_folder + prediction_fn + '_folder/'
+    if not os.path.exists(inner_folder):
+        os.makedirs(inner_folder)
 
-            # use best texture patch in final output
-            output[r:r+smallest_pw, c:c+smallest_pw, :] = patch_images[best_texture_index][r:r+smallest_pw, c:c+smallest_pw, :]
-            num_overlaps[r:r+smallest_pw, c:c+smallest_pw, :] += 1
-    
-    # since the patches can overlap, avg out the additions TODO: maybe make this weighted
-    for i in range(context.shape[0]):
-        for j in range(context.shape[1]):
-            if num_overlaps[i][j] == 0:
-                print("THERE WAS AN ISSUE COUNTING OVERLAPS AT %d, %d" % (i,j))
-            output[i][j]/=num_overlaps[i][j]
+    stride = start_stride
+    while stride <= smallest_pw:
+        # now for each small patch in context, find the best stylized patch
+        num_overlaps = np.zeros((context.shape[0], context.shape[1]))
+        output = np.zeros(context.shape)
 
-    # plt.imshow(output)
-    # plt.show()
+        # track which K-style gets used
+        rrange = range(0, patchR-smallest_pw+1, stride)
+        crange = range(0, patchC-smallest_pw+1, stride)
+        # this will be a mapping of context-img r, c to the k-index of the img
+        k_usage = np.array([[None for i in crange] for j in rrange])
+        kr = 0
+        for r in rrange:
+            if r%100==0:
+                print("on row ", r, " of ", patchR-smallest_pw)
+            kc = 0
+            for c in crange:
+                context_patch = context[r:r+smallest_pw, c:c+smallest_pw, :]
+                best_texture_index = None
+                best_texture_dist = float('inf')
 
-    output = np.uint8(output)
-    im = Image.fromarray(output)
-    im.save('pyramid_output.png')
-    return output
+                # look at each possible patch texture
+                for i, texture in enumerate(patch_images):
+                    text_patch = texture[r:r+smallest_pw, c:c+smallest_pw, :]
+                    dist = evaluate_patch_distance(text_patch, context_patch)
+
+                    if dist < best_texture_dist:
+                        best_texture_index = i
+                        best_texture_dist = dist
+
+                # use best texture patch in final output
+                output[r:r+smallest_pw, c:c+smallest_pw, :] += patch_images[best_texture_index][r:r+smallest_pw, c:c+smallest_pw, :]
+                num_overlaps[r:r+smallest_pw, c:c+smallest_pw] += 1
+                k_usage[kr][kc] = [[r, c], best_texture_index]
+                kc += 1
+            kr += 1
+        
+        print(num_overlaps.shape)
+        print(k_usage.shape)
+
+        # save the k usage info
+        np.save("%s%s_stride_%d_pyramid_kchoice_data" % (inner_folder, prediction_fn, stride), k_usage)
+
+        # since the patches can overlap, avg out the additions TODO: maybe make this weighted
+        for i in range(context.shape[0]):
+            for j in range(context.shape[1]):
+                if num_overlaps[i][j] == 0:
+                    continue # this happens when stride doesn't match up with pw
+                # need to make sure it doesn't integer divide
+                output[i][j]/=(1.*num_overlaps[i][j])
+                
+        print("\nSanity check, all values of output OK?")
+        print(not (output > 255).any())
+        print(not (output < 0).any())
+
+        output = np.uint8(output)
+        im = Image.fromarray(output)
+        im.save(inner_folder+ prediction_fn + 'stride_%d_pyramid_output.png' % stride)
+        stride += 1
 
 def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, stride=1, max_iters=1):
     # open the context image
@@ -93,6 +125,14 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     inference = LoopyBeliefUpdateInference(model, order, callback=reporter)
     inference.calibrate(evidence)
 
+    lbf_folder = 'lbf_output/'
+    if not os.path.exists(lbf_folder):
+        os.makedirs(lbf_folder)
+
+    inner_folder = lbf_folder + prediction_fn + '_folder/'
+    if not os.path.exists(inner_folder):
+        os.makedirs(inner_folder)
+
     K = len(patch_images)
     rrange = range(0, patchR-smallest_pw+1, stride)
     crange = range(0, patchC-smallest_pw+1, stride)
@@ -116,7 +156,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
 
     # save the labels so they can be easily reused
     ff_labels = np.array(ff_labels)
-    np.save("%s_patchw_%d_first_factor_label_data" % (prediction_fn, smallest_pw), ff_labels)
+    np.save("%s%s_patchw_%d_first_factor_label_data" % (inner_folder, prediction_fn, smallest_pw), ff_labels)
 
 def get_stylized_images(patch_image_directory):
     """
@@ -324,7 +364,7 @@ if __name__=='__main__':
 
     if int(sys.argv[1]) == 0:
         print('Starting combining using best patches')
-        combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4])
+        combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
     else:
         print('Starting combining using lbf')
         lbp_combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), int(sys.argv[6]))
