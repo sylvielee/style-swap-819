@@ -1,0 +1,5 @@
+Fraction each k style file was usedEuclidean dist: 267767.123
+0, small_brando_patch_2_stylized: 0.4888
+	color RGB 153, 255, 153
+1, small_brando_patch_6_stylized: 0.5112
+	color RGB 153, 255, 255
