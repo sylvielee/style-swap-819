@@ -102,7 +102,7 @@ def combine_best_patches(patch_image_directory, context_image, prediction_fn, st
         im.save(inner_folder+ prediction_fn + 'stride_%d_pyramid_output.png' % stride)
         stride += 1
 
-def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, stride=1, max_iters=1):
+def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, min_stride=1, max_iters=1):
     # open the context image
     context = Image.open(context_image)
 
@@ -114,17 +114,6 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     context = context.resize((patchC, patchR), Image.ANTIALIAS)
     context = np.array(context)
 
-    evidence, factors = construct_graph(patch_images, context, smallest_pw, stride)
-    model = Model(factors)
-
-    # Get some feedback on how inference is converging by listening in on some of the label beliefs.
-    def reporter(infe, orde):
-        print('{:3}'.format(orde.total_iterations))
-
-    order = FloodingProtocol(model, max_iterations=max_iters)
-    inference = LoopyBeliefUpdateInference(model, order, callback=reporter)
-    inference.calibrate(evidence)
-
     lbf_folder = 'lbf_output/'
     if not os.path.exists(lbf_folder):
         os.makedirs(lbf_folder)
@@ -133,30 +122,44 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     if not os.path.exists(inner_folder):
         os.makedirs(inner_folder)
 
-    K = len(patch_images)
-    rrange = range(0, patchR-smallest_pw+1, stride)
-    crange = range(0, patchC-smallest_pw+1, stride)
-    num_r = len(rrange) # number of patches vertically
-    num_c = len(crange) # number of patches horizontally
+    stride = min_stride
+    while stride <= smallest_pw:
+        evidence, factors = construct_graph(patch_images, context, smallest_pw, stride)
+        model = Model(factors)
 
-    ff_labels = [[None for i in range(num_c)] for j in range(num_r)]
-    ff_r = 0
-    for r in rrange:
-        ff_c = 0
-        for c in crange:
-            variable_name = 'label_{}_{}'.format(r, c)
+        # Get some feedback on how inference is converging by listening in on some of the label beliefs.
+        def reporter(infe, orde):
+            print('{:3}'.format(orde.total_iterations))
 
-            # first factor is the context-style factor tha we want
-            label_factor = inference.get_marginals(variable_name)[0]
+        order = FloodingProtocol(model, max_iterations=max_iters)
+        inference = LoopyBeliefUpdateInference(model, order, callback=reporter)
+        inference.calibrate(evidence)
 
-            # save the actual patch location to make it easier to remap them later on
-            ff_labels[ff_r][ff_c] = [[r, c], label_factor.normalized_data]
-            ff_c+=1
-        ff_r+=1
+        K = len(patch_images)
+        rrange = range(0, patchR-smallest_pw+1, stride)
+        crange = range(0, patchC-smallest_pw+1, stride)
+        num_r = len(rrange) # number of patches vertically
+        num_c = len(crange) # number of patches horizontally
 
-    # save the labels so they can be easily reused
-    ff_labels = np.array(ff_labels)
-    np.save("%s%s_patchw_%d_first_factor_label_data" % (inner_folder, prediction_fn, smallest_pw), ff_labels)
+        ff_labels = [[None for i in range(num_c)] for j in range(num_r)]
+        ff_r = 0
+        for r in rrange:
+            ff_c = 0
+            for c in crange:
+                variable_name = 'label_{}_{}'.format(r, c)
+
+                # first factor is the context-style factor tha we want
+                label_factor = inference.get_marginals(variable_name)[0]
+
+                # save the actual patch location to make it easier to remap them later on
+                ff_labels[ff_r][ff_c] = [[r, c], label_factor.normalized_data]
+                ff_c+=1
+            ff_r+=1
+
+        # save the labels so they can be easily reused
+        ff_labels = np.array(ff_labels)
+        np.save("%s%s_stride_%d_first_factor_label_data" % (inner_folder, prediction_fn, stride), ff_labels)
+        stride += 1
 
 def get_stylized_images(patch_image_directory):
     """
