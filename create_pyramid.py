@@ -102,7 +102,7 @@ def combine_best_patches(patch_image_directory, context_image, prediction_fn, st
         im.save(inner_folder+ prediction_fn + 'stride_%d_pyramid_output.png' % stride)
         stride += 1
 
-def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, min_stride=1, max_iters=1):
+def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn, min_stride=1, max_iters=1, max_stride=3):
     # open the context image
     context = Image.open(context_image)
 
@@ -123,7 +123,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
         os.makedirs(inner_folder)
 
     stride = min_stride
-    while stride <= smallest_pw:
+    while stride <= max_stride:
         evidence, factors = construct_graph(patch_images, context, smallest_pw, stride)
         model = Model(factors)
 
@@ -362,7 +362,7 @@ def compatability(dist):
 
 if __name__=='__main__':
     if len(sys.argv) < 7:
-        print("Expected: create_pyramid.py <use_lbf> <patch_image_directory> <context_image> <prediction_filename> <stride> <max_iters>")
+        print("Expected: create_pyramid.py <use_lbf> <patch_image_directory> <context_image> <prediction_filename> <stride> <max_iters> <max_stride>")
         sys.exit(2)
 
     if int(sys.argv[1]) == 0:
@@ -370,4 +370,4 @@ if __name__=='__main__':
         combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
     else:
         print('Starting combining using lbf')
-        lbp_combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), int(sys.argv[6]))
+        lbp_combine_best_patches(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), int(sys.argv[6]), int(sys.argv[7]))
