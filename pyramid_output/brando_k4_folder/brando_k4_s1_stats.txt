@@ -1,0 +1,9 @@
+Fraction each k style file was used
+0, small_brando_patch_2_stylized: 0.3330
+	color RGB 255, 153, 204
+1, small_brando_patch_4_stylized: 0.2342
+	color RGB 255, 153, 153
+2, small_brando_patch_8_stylized: 0.2085
+	color RGB 153, 153, 255
+3, small_brando_patch_6_stylized: 0.2243
+	color RGB 255, 153, 204
