@@ -1,0 +1,9 @@
+Fraction each k style file was used
+0, brad_pitt_patch_6_stylized: 0.2270
+	color RGB 255, 255, 153
+1, brad_pitt_patch_3_stylized: 0.1915
+	color RGB 255, 153, 204
+2, brad_pitt_patch_12_stylized: 0.3206
+	color RGB 255, 153, 204
+3, brad_pitt_patch_9_stylized: 0.2610
+	color RGB 255, 153, 255

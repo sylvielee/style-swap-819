@@ -1,0 +1,13 @@
+Fraction each k style file was used
+0, bike_patch_6_stylized: 0.1268
+	color RGB 255, 153, 204
+1, bike_patch_15_stylized: 0.1266
+	color RGB 255, 255, 153
+2, bike_patch_12_stylized: 0.1147
+	color RGB 255, 153, 204
+3, bike_patch_18_stylized: 0.2831
+	color RGB 153, 255, 204
+4, bike_patch_9_stylized: 0.1150
+	color RGB 153, 153, 255
+5, bike_patch_3_stylized: 0.2338
+	color RGB 255, 153, 204
