@@ -99,7 +99,7 @@ def lbp_combine_best_patches(patch_image_directory, context_image, prediction_fn
     num_r = len(rrange) # number of patches vertically
     num_c = len(crange) # number of patches horizontally
 
-    ff_labels = [[None for i in range(num_r)] for j in range(num_c)]
+    ff_labels = [[None for i in range(num_c)] for j in range(num_r)]
     ff_r = 0
     for r in rrange:
         ff_c = 0
