@@ -1,0 +1,5 @@
+Fraction each k style file was usedEuclidean dist: 37445.646
+0, brad_pitt_patch_3_stylized: 0.4085
+	color RGB 255, 204, 153
+1, brad_pitt_patch_9_stylized: 0.5915
+	color RGB 255, 255, 153
