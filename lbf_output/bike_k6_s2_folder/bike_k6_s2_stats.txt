@@ -1,0 +1,13 @@
+Fraction each k style file was usedEuclidean dist: 164479.601
+0, bike_patch_6_stylized: 0.1088
+	color RGB 153, 255, 204
+1, bike_patch_15_stylized: 0.1414
+	color RGB 255, 153, 204
+2, bike_patch_12_stylized: 0.2315
+	color RGB 153, 204, 255
+3, bike_patch_18_stylized: 0.1708
+	color RGB 204, 153, 255
+4, bike_patch_9_stylized: 0.1437
+	color RGB 204, 253, 153
+5, bike_patch_3_stylized: 0.2037
+	color RGB 255, 153, 204
